@@ -1,0 +1,377 @@
+view: Fulfillment_Unit_Volume {
+  derived_table: {
+    indexes: ["Order_Number"]
+    sql:
+SELECT
+s.source3pl,
+s.Transactionnumber AS 'Order_Number',
+s.Shipmentdate,
+s.Sku,
+i.itemname,
+i.category AS 'SKU_Category',
+s.QuantityShipped,
+s.City,
+s.shortzip As 'zipcode',
+s.State,
+s.Country,
+s.ShippingZone,
+s.carrier,
+s.method,
+s.trackingnumber,
+s.period,
+s.quantityordered,
+s.location,
+CASE
+  WHEN s.source3pl ='NPF' THEN 'NPF'
+  WHEN s.source3pl= 'Visible' And s.warehouse ='ATL' Then 'Maersk-ATL'
+  WHEN s.source3pl= 'Visible' And s.warehouse='TOR' Then 'Maersk-TOR'
+  WHEN s.source3pl= 'Shiphero' And s.warehouse LIKE'%Reynosa%' Then 'FSD-Reynosa'
+  WHEN s.source3pl= 'Shiphero' And s.warehouse LIKE'%TX%' Then 'FSD-Reynosa'
+  WHEN s.source3pl= 'Shiphero' And s.warehouse LIKE '%Tecate%' Then 'FSD-Tecate'
+  WHEN s.source3pl= 'Shiphero' And s.warehouse LIKE '%Manscaped-DTC%' Then 'FSD-Tecate'
+  WHEN s.source3pl= 'Shiphero' And s.warehouse LIKE '%Toronto%' Then 'FSD-Hamilton'
+  WHEN s.source3pl= 'Shiphero' And s.warehouse LIKE '%BFS%' Then 'FSD-Hamilton'
+  WHEN s.source3pl= 'SEKO' And s.warehouse ='DCCL01' Then 'SEKO-UK'
+  WHEN s.source3pl= 'SEKO' And s.warehouse ='DCRTDM02' Then 'SEKO-NL'
+  WHEN s.source3pl= 'ShipStation' And s.warehouse ='Trade Place' Then 'Trade Place'
+  WHEN s.source3pl= 'TFI' Then 'TFI'
+  Else coalesce (s.source3pl,s.warehouse) END AS 'Warehouse',
+CASE
+WHEN s.transactionnumber LIKE 'MAN%' THEN 'DTC'
+WHEN s.transactionnumber LIKE 'FBA%' THEN 'AMAZON'
+WHEN s.transactionnumber LIKE 'SAMPLE%' THEN 'SAMPLE ORDERS'
+WHEN s.transactionnumber LIKE 'DTC_KIT_BUILD%' THEN 'KITTING'
+WHEN s.transactionnumber LIKE 'RTL_KIT_BUILD%' THEN 'KITTING'
+WHEN s.transactionnumber LIKE 'AMZ_KIT_BUILD%' THEN 'KITTING'
+WHEN s.transactionnumber LIKE 'MS%' THEN 'TRANSFER SHIPMENTS'
+WHEN s.transactionnumber LIKE 'OUTBOUND%' THEN 'TRANSFER SHIPMENTS'
+WHEN s.transactionnumber LIKE 'AAF-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'AAFES%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'ALP-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'ARG-UK-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'ARY-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'BER-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'BES-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'BBY%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'BBY-CA-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'BLA-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'BOO-IE-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'BOO-UK-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'BUR-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'CAT-CA-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'CAN%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'CAX%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'CGX-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'CGX-CA%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'CGX%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'COS-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'COS-CA-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'COSTCO%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'CUR-UK-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'CURRYS%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'CVS-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'CVS%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'DID-IE-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'DIS-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'FOL-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'HAI-AU-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'HRC-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'HRD-UK-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'HAR-AU-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'HAR-IE-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'HAR-UK-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'JOH-UK-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'JOS-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'LOB-CA-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'LON-CA-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'MAC-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'MAR-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'MCX-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'MCX%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'MED-DE-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'MEI-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'MEIJER%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'MON-UAE-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'MOO-CA-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'MUE-DE-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'NEX-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'NEXCOM%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'NECOM%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'NEXOM%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'NXT-UK%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'NLI-CA-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'NLI%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'ROS-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'RYM-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'SAI-UK-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'SDM-CA-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'SIM-CA-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'SMA-UK%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'SMA-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'STA-CA-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'SUN-ZA-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'SUNPAC%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'TAR%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'TARGET%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'TES-IE-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'TES-UK-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'MWS-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'TJM-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'TJM-CA-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'TSC-CA-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'TSC%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'UNI-IE-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'WAL-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'WAL%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'WGN-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'WMT-US-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'WALMART%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'WMT-CA-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'WOO-AU-%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE '008470%' THEN 'RETAIL'
+--add 3 new retailers in July 2026 & add transfer orders and amazon orders for Flexport in June 2026--
+WHEN s.transactionnumber LIKE 'KOH-US%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'JEA-CA%' THEN 'RETAIL'
+WHEN s.transactionnumber LIKE 'CHE-IE%' THEN 'RETAIL'
+WHEN s.transactionnumber ='BKGLMGSFMX' THEN 'AMAZON'
+WHEN s.transactionnumber ='HKBNMMJFGL' THEN 'AMAZON'
+WHEN s.transactionnumber = 'SJQGGGOGZE' THEN 'AMAZON'
+WHEN s.transactionnumber = 'RJ4PZGOZGX' THEN 'AMAZON'
+WHEN s.transactionnumber = 'RYVSZFOFZG' THEN 'AMAZON'
+WHEN s.transactionnumber = 'BK_1RN5GZL' THEN 'TRANSFER SHIPMENTS'
+WHEN s.transactionnumber = 'SJHEF8HZGG' THEN 'TRANSFER SHIPMENTS'
+WHEN s.transactionnumber = 'BJPXFWBXZG' THEN 'TRANSFER SHIPMENTS'
+ELSE 'EBAY or OTHERS' END AS 'Channel',
+CASE
+WHEN s.transactionnumber LIKE 'AAF-US-%' THEN 'AAFES'
+WHEN s.transactionnumber LIKE 'AAFES%' THEN 'AAFES'
+WHEN s.transactionnumber LIKE 'ALP-US-%' THEN 'Alpha Sterio'
+WHEN s.transactionnumber LIKE 'ARG-UK-%' THEN 'Argos UK'
+WHEN s.transactionnumber LIKE 'ARY-US-%' THEN 'Arya'
+WHEN s.transactionnumber LIKE 'BER-US-%' THEN 'Bermuda Club'
+WHEN s.transactionnumber LIKE 'BES-US-%' THEN 'BeSpoke Post'
+WHEN s.transactionnumber LIKE 'BBY%' THEN 'Best Buy'
+WHEN s.transactionnumber LIKE 'BBY-CA-%' THEN 'Best Buy CA'
+WHEN s.transactionnumber LIKE 'BLA-US-%' THEN 'Blains'
+WHEN s.transactionnumber LIKE 'BOO-IE-%' THEN 'Boots IE'
+WHEN s.transactionnumber LIKE 'BOO-UK-%' THEN 'Boots UK/IE'
+WHEN s.transactionnumber LIKE 'BUR-US-%' THEN 'Burlington'
+WHEN s.transactionnumber LIKE 'CAT-CA-%' THEN 'Canadian Tire CA'
+WHEN s.transactionnumber LIKE 'CAN%' THEN 'CANEX'
+WHEN s.transactionnumber LIKE 'CAX%' THEN 'CANEX'
+WHEN s.transactionnumber LIKE 'CGX-US-%' THEN 'CGX'
+WHEN s.transactionnumber LIKE 'CGX-CA%' THEN 'CGX-CA'
+WHEN s.transactionnumber LIKE 'CGX%' THEN 'CGX-CA'
+WHEN s.transactionnumber LIKE 'COS-US-%' THEN 'Costco'
+WHEN s.transactionnumber LIKE 'COS-CA-%' THEN 'Costco CA'
+WHEN s.transactionnumber LIKE 'COSTCO%' THEN 'Costco CA'
+WHEN s.transactionnumber LIKE 'CUR-UK-%' THEN 'Currys UK'
+WHEN s.transactionnumber LIKE 'CURRYS%' THEN 'Currys UK'
+WHEN s.transactionnumber LIKE 'CVS-US-%' THEN 'CVS'
+WHEN s.transactionnumber LIKE 'CVS%' THEN 'CVS'
+WHEN s.transactionnumber LIKE 'DID-IE-%' THEN 'DID IE'
+WHEN s.transactionnumber LIKE 'DIS-US-%' THEN 'Discount Drug Mart'
+WHEN s.transactionnumber LIKE 'FOL-US-%' THEN 'Follet'
+WHEN s.transactionnumber LIKE 'HAI-AU-%' THEN 'Hairhouse AU'
+WHEN s.transactionnumber LIKE 'HRC-US-%' THEN 'Harco'
+WHEN s.transactionnumber LIKE 'HRD-UK-%' THEN 'Harrods UK'
+WHEN s.transactionnumber LIKE 'HAR-AU-%' THEN 'Harvey Norman AU'
+WHEN s.transactionnumber LIKE 'HAR-IE-%' THEN 'Harvey Norman IE'
+WHEN s.transactionnumber LIKE 'HAR-UK-%' THEN 'Harvey Norman UK'
+WHEN s.transactionnumber LIKE 'JOH-UK-%' THEN 'John Lewis UK'
+WHEN s.transactionnumber LIKE 'JOS-US-%' THEN 'Jos A Banks'
+WHEN s.transactionnumber LIKE 'LOB-CA-%' THEN 'Loblaw CA'
+WHEN s.transactionnumber LIKE 'LON-CA-%' THEN 'London Drug'
+WHEN s.transactionnumber LIKE 'MAC-US-%' THEN 'Macys'
+WHEN s.transactionnumber LIKE 'MAR-US-%' THEN 'Marshalls'
+WHEN s.transactionnumber LIKE 'MCX-US-%' THEN 'MCX'
+WHEN s.transactionnumber LIKE 'MCX%' THEN 'MCX'
+WHEN s.transactionnumber LIKE 'MED-DE-%' THEN 'Media Markt DE'
+WHEN s.transactionnumber LIKE 'MEI-US-%' THEN 'Meijer'
+WHEN s.transactionnumber LIKE 'MEIJER%' THEN 'Meijer'
+WHEN s.transactionnumber LIKE 'MON-UAE-%' THEN 'Monster UAE'
+WHEN s.transactionnumber LIKE 'MOO-CA-%' THEN 'Moores'
+WHEN s.transactionnumber LIKE 'MUE-DE-%' THEN 'Mueller DE'
+WHEN s.transactionnumber LIKE 'NEX-US-%' THEN 'Nexcom'
+WHEN s.transactionnumber LIKE 'NEXCOM%' THEN 'Nexcom'
+WHEN s.transactionnumber LIKE 'NECOM%' THEN 'Nexcom'
+WHEN s.transactionnumber LIKE 'NEXOM%' THEN 'Nexcom'
+WHEN s.transactionnumber LIKE 'NXT-UK%' THEN 'Next UK'
+WHEN s.transactionnumber LIKE 'NLI-CA-%' THEN 'NLI CA'
+WHEN s.transactionnumber LIKE 'NLI%' THEN 'NLI CA'
+WHEN s.transactionnumber LIKE 'ROS-US-%' THEN 'Ross Stores'
+WHEN s.transactionnumber LIKE 'RYM-US-%' THEN 'Rymax'
+WHEN s.transactionnumber LIKE 'SAI-UK-%' THEN 'Sainsbury UK'
+WHEN s.transactionnumber LIKE 'SDM-CA-%' THEN 'Shoppers Drug Mart'
+WHEN s.transactionnumber LIKE 'SIM-CA-%' THEN 'Simons CA'
+WHEN s.transactionnumber LIKE 'SMA-UK%' THEN 'Smartech UK'
+WHEN s.transactionnumber LIKE 'SMA-US-%' THEN 'Smartech US'
+WHEN s.transactionnumber LIKE 'STA-CA-%' THEN 'Staples CA'
+WHEN s.transactionnumber LIKE 'SUN-ZA-%' THEN 'SUNPAC'
+WHEN s.transactionnumber LIKE 'SUNPAC%' THEN 'SUNPAC'
+WHEN s.transactionnumber LIKE 'TAR%' THEN 'Target'
+WHEN s.transactionnumber LIKE 'TARGET%' THEN 'Target'
+WHEN s.transactionnumber LIKE 'TES-IE-%' THEN 'Tesco IE'
+WHEN s.transactionnumber LIKE 'TES-UK-%' THEN 'Tesco UK'
+WHEN s.transactionnumber LIKE 'MWS-US-%' THEN 'The Mens Wearhouse'
+WHEN s.transactionnumber LIKE 'TJM-US-%' THEN 'TJ Maxx'
+WHEN s.transactionnumber LIKE 'TJM-CA-%' THEN 'TJ Maxx Canada'
+WHEN s.transactionnumber LIKE 'TSC-CA-%' THEN 'TSC (The Shopping Channel)'
+WHEN s.transactionnumber LIKE 'TSC%' THEN 'TSC (The Shopping Channel)'
+WHEN s.transactionnumber LIKE 'UNI-IE-%' THEN 'Uniphar IE'
+WHEN s.transactionnumber LIKE 'WAL-US-%' THEN 'Walgreens'
+WHEN s.transactionnumber LIKE 'WAL%' THEN 'Walgreens'
+WHEN s.transactionnumber LIKE 'WGN-US-%' THEN 'Walgreens.com'
+WHEN s.transactionnumber LIKE 'WMT-US-%' THEN 'Walmart'
+WHEN s.transactionnumber LIKE 'WALMART%' THEN 'Walmart'
+WHEN s.transactionnumber LIKE 'WMT-CA-%' THEN 'Walmart CA'
+WHEN s.transactionnumber LIKE 'WOO-AU-%' THEN 'Woolworths AU'
+WHEN s.transactionnumber LIKE '008470%' THEN 'Costco Drop Ship'
+WHEN s.transactionnumber LIKE '008470%' THEN 'COSTCO-DROP_SHIP'
+--add 3 new retailers in July 2026--
+WHEN s.transactionnumber LIKE 'KOH-US%' THEN 'Kohls'
+WHEN s.transactionnumber LIKE 'JEA-CA%' THEN 'Jean Coutu'
+WHEN s.transactionnumber LIKE 'KOH-US%' THEN 'Chemist Warehouse'
+ELSE NULL END AS 'Retailer_Name'
+From shipmenttransactions3pl s
+INNER JOIN ItemDIM i ON sourcesystem ='NetSuite' and s.sku =i.sku
+Where ShipmentDate >='2025-01-01'
+
+;;
+    sql_trigger_value: SELECT DATEPART(day, GETDATE()) ;;
+
+
+
+  }
+##### DIMENSIONS #####
+
+  dimension: source3pl{
+    type: string
+    sql: ${TABLE}."source3pl" ;;
+  }
+  dimension: Order_Number {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}."Order_Number" ;;
+  }
+
+  dimension_group: Fulfilled_Date{
+    type: time
+    timeframes:  [raw, time, date, day_of_week, day_of_week_index, week, week_of_year, month, month_name, month_num, quarter, year]
+    sql: ${TABLE}."shipmentdate";;
+
+  }
+
+  dimension: SKU {
+    type: string
+    sql: ${TABLE}."SKU" ;;
+  }
+
+  dimension: Item_Description {
+    type: string
+    sql: ${TABLE}."Itemname" ;;
+  }
+
+  dimension: SKU_Category {
+    type: string
+    sql: ${TABLE}."SKU_Category" ;;
+  }
+
+
+  dimension: QuantityShipped {
+    type: number
+    sql: ${TABLE}."QuantityShipped";;
+  }
+  dimension: Shipping_City{
+    type: string
+    sql: ${TABLE}."City" ;;
+  }
+
+  dimension: Zipcode{
+    type: string
+    sql: ${TABLE}."zipcode" ;;
+  }
+
+  dimension: Shipping_State{
+    type: string
+    sql: ${TABLE}."State" ;;
+  }
+
+  dimension: Shipping_Country{
+    type: string
+    sql: ${TABLE}."Country" ;;
+  }
+
+  dimension: Shipping_Zone{
+    type: string
+    sql: ${TABLE}."ShippingZone" ;;
+  }
+
+  dimension: Carrier{
+    type: string
+    sql: ${TABLE}."carrier" ;;
+  }
+
+  dimension: Ship_Method{
+    type: string
+    sql: ${TABLE}."method" ;;
+  }
+  dimension: Tracking_Number{
+    type: string
+    sql: ${TABLE}."method" ;;
+  }
+  dimension: Period{
+    type: string
+    sql: ${TABLE}."period" ;;
+  }
+  dimension: Quantity_Ordered {
+    type: number
+    sql: ${TABLE}."Quantityordered";;
+}
+  dimension: Warehouse{
+      type: string
+      sql: ${TABLE}."warehouse" ;;
+}
+
+    dimension: location{
+      type: string
+      sql: ${TABLE}."location" ;;
+    }
+
+    dimension: Channel{
+      type: string
+      sql: ${TABLE}."Channel" ;;
+    }
+  dimension: Retailer_Name{
+    type: string
+    sql: ${TABLE}."Retailer_Name" ;;
+  }
+
+
+    measure: Total_Quantity_Shipped {
+      type: sum
+      hidden: yes
+      value_format_name: decimal_0
+      sql: ${QuantityShipped} ;;
+    }
+
+
+    measure: Average_Number_Of_Orders {
+      type: average_distinct
+      value_format_name: decimal_2
+      sql: ${Order_Number} ;;
+    }
+
+
+    measure: Average_Quantity_Shipped {
+      type: average
+      value_format_name: decimal_2
+      sql: ${QuantityShipped} ;;
+    }
+
+    measure: Total_Number_Of_Orders {
+      type: count_distinct
+      value_format_name: decimal_0
+      sql: ${Order_Number} ;;
+    }
+   }
