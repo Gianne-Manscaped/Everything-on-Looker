@@ -1,0 +1,89 @@
+view: Back_Order_Items {
+  derived_table: {
+    indexes: ["Ordernumber"]
+    sql:
+   Select
+b.source3pl,
+b.ordernumber,
+b.backorderdate,
+b.sku,
+i.itemname,
+i.category,
+b.Quantity,
+b.InputFile,
+b.InsertedDateTimeUTC,
+b.period,
+CASE WHEN b.Quantity >=1 then 'Yes'
+Else 'No' END AS 'Back_Orders'
+From BackOrders3PL b
+INNER JOIN Itemdim i ON  b.sku =i.sku AND SourceSystem ='NetSuite'
+
+      ;;
+    sql_trigger_value: SELECT DATEPART(day, GETDATE()) ;;
+
+
+
+  }
+##### DIMENSIONS #####
+
+  dimension: source3pl{
+    type: string
+    sql: ${TABLE}."source3pl" ;;
+  }
+  dimension: Order_Number {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}."ordernumber" ;;
+  }
+
+  dimension_group: backorderdate{
+    type: time
+    timeframes:  [raw, time, date, day_of_week, day_of_week_index, week, week_of_year, month, month_name, month_num, quarter, year]
+    sql: ${TABLE}."backorderdate";;
+
+  }
+
+  dimension: SKU {
+    type: string
+    sql: ${TABLE}."SKU" ;;
+  }
+
+  dimension: Item_Description {
+    type: string
+    sql: ${TABLE}."Itemname" ;;
+  }
+
+  dimension: SKU_Category {
+    type: string
+    sql: ${TABLE}."Category" ;;
+  }
+
+  dimension: Back_Orders{
+    type: string
+    sql: ${TABLE}."Back_Orders" ;;
+  }
+
+
+  dimension: Quantity{
+    type: number
+    sql: ${TABLE}."Quantity";;
+  }
+
+  dimension: InputFile{
+    type: number
+    sql: ${TABLE}."InputFile";;
+  }
+
+  measure: Total_Quantity_Shipped {
+    type: sum
+    value_format_name: decimal_0
+    sql: ${Quantity} ;;
+  }
+
+
+  measure: Total_Number_Of_Orders {
+    type: count_distinct
+    value_format_name: decimal_0
+    sql: ${Order_Number} ;;
+  }
+ }
