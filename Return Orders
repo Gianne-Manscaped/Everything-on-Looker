@@ -1,0 +1,132 @@
+view: return_orders {
+  derived_table: {
+    indexes: ["Return_Order_Number"]
+    sql:
+Select
+ro.source3pl,
+ro.returndate,
+ro.returnreason,
+ro.Return_Order_Number,
+ro.SKU,
+ro.ReceivedQty,
+ro.ItemName,
+ro.Warehouse,
+ro.inputfile
+From  (
+Select r.source3pl,
+r.returndate,
+r.returnreason,
+r.RMANumber As 'Return_Order_Number',
+r.SKU,
+r.ReceivedQty,
+i.ItemName,
+CASE
+  WHEN r.source3pl ='NPF' THEN 'NPF'
+  WHEN r.source3pl= 'Visible' And r.warehouse ='ATL' Then 'Maersk-ATL'
+  WHEN r.source3pl= 'Visible' And r.warehouse='TOR' Then 'Maersk-TOR'
+  WHEN r.source3pl= 'Shiphero' And r.warehouse LIKE'%Texas%' Then 'FSD-Reynosa'
+  WHEN r.source3pl= 'Shiphero' And r.warehouse LIKE '%Tecate%' Then 'FSD-Tecate'
+  WHEN r.source3pl= 'Shiphero' And r.warehouse LIKE '%Manscaped-DTC%' Then 'FSD-Tecate'
+  WHEN r.source3pl= 'Shiphero' And r.warehouse LIKE '%BFS-H%' Then 'FSD-Hamilton'
+  WHEN r.source3pl= 'Shiphero' And r.warehouse IS NULL Then 'FSD'
+  WHEN r.source3pl= 'SEKO' And r.warehouse ='DCCL01' Then 'SEKO-UK'
+  WHEN r.source3pl= 'SEKO' And r.warehouse ='DCRTDM02' Then 'SEKO-NL'
+  WHEN r.source3pl= 'ShipStation' And r.warehouse ='Trade Place' Then 'Trade Place'
+  WHEN r.source3pl= 'TFI' Then 'TFI'
+  Else coalesce (r.source3pl,r.warehouse) END AS 'Warehouse',
+r.inputfile
+From Returns3PL r
+INNER JOIN ITEMDIM i ON r.sku =i.sku and i.SourceSystem ='Netsuite'
+
+Union All
+-- SEKO return orders are stored in Data Table Receipts3PL but not Returns3PL --
+
+Select rpt.source3pl,
+rpt.ReceiveDate As 'returndate',
+rpt.reason As 'returnreason',
+rpt.RMA As 'Return_Order_Number',
+rpt.SKU,
+rpt.ReceivedQuantity As 'ReceivedQty',
+i.ItemName,
+CASE
+  WHEN rpt.source3pl ='NPF' THEN 'NPF'
+  WHEN rpt.source3pl= 'Visible' And rpt.warehouse ='ATL' Then 'Maersk-ATL'
+  WHEN rpt.source3pl= 'Visible' And rpt.warehouse='TOR' Then 'Maersk-TOR'
+  WHEN rpt.source3pl= 'Shiphero' And rpt.warehouse LIKE'%Texas%' Then 'FSD-Reynosa'
+  WHEN rpt.source3pl= 'Shiphero' And rpt.warehouse LIKE '%Tecate%' Then 'FSD-Tecate'
+  WHEN rpt.source3pl= 'Shiphero' And rpt.warehouse LIKE '%Manscaped-DTC%' Then 'FSD-Tecate'
+  WHEN rpt.source3pl= 'Shiphero' And rpt.warehouse LIKE '%BFS-H%' Then 'FSD-Hamilton'
+  WHEN rpt.source3pl= 'Shiphero' And rpt.warehouse IS NULL Then 'FSD'
+  WHEN rpt.source3pl= 'SEKO' And rpt.warehouse ='DCCL01' Then 'SEKO-UK'
+  WHEN rpt.source3pl= 'SEKO' And rpt.warehouse ='DCRTDM02' Then 'SEKO-NL'
+  WHEN rpt.source3pl= 'ShipStation' And rpt.warehouse ='Trade Place' Then 'Trade Place'
+  WHEN rpt.source3pl= 'TFI' Then 'TFI'
+  Else coalesce (rpt.source3pl,rpt.warehouse) END AS 'Warehouse',
+rpt.inputfile
+From Receipts3PL rpt
+INNER JOIN ITEMDIM i ON rpt.sku =i.sku and i.SourceSystem ='Netsuite'
+Where rpt.reason = 'return' ) ro
+
+
+;;
+    sql_trigger_value: SELECT DATEPART(day, GETDATE()) ;;
+
+
+
+  }
+##### DIMENSIONS #####
+
+  dimension: source3pl{
+    type: string
+    sql: ${TABLE}."source3pl" ;;
+  }
+
+  dimension: Return_Order_Number{
+    primary_key: yes
+    type: string
+    sql: ${TABLE}."Return_Order_Number" ;;
+  }
+  dimension: Return_Reason{
+    type: string
+    sql: ${TABLE}."returnreason" ;;
+  }
+  dimension_group: Return_Date{
+    type: time
+    timeframes:  [raw, time, date, day_of_week, day_of_week_index, week, week_of_year, month, month_name, month_num, quarter, year]
+    sql: ${TABLE}."returndate";;
+
+  }
+
+  dimension: SKU {
+    type: string
+    sql: ${TABLE}."SKU" ;;
+  }
+
+  dimension: Item_Description {
+    type: string
+    sql: ${TABLE}."Itemname" ;;
+  }
+
+  dimension: ReceivedQty {
+    type: number
+    sql: ${TABLE}."ReceivedQty";;
+  }
+
+  dimension: warehouse{
+    type: string
+    sql: ${TABLE}."warehouse" ;;
+  }
+
+
+  measure: Total_Quantity_Received {
+    type: sum
+    value_format_name: decimal_0
+    sql: ${ReceivedQty} ;;
+  }
+
+  measure: Total_Number_Of_Orders {
+    type: count_distinct
+    value_format_name: decimal_0
+    sql: ${Return_Order_Number} ;;
+  }
+}
