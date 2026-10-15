@@ -1,0 +1,150 @@
+iew: outbound_shipping {
+  derived_table: {
+    indexes: ["Order_Number"]
+    sql:
+Select s.TransactionNumber As 'Order_Number',
+CASE WHEN s.source3pl ='NPF' THEN 'NPF'
+  WHEN s.source3pl= 'Visible' And s.warehouse ='ATL' Then 'Maersk-ATL'
+  WHEN s.source3pl= 'Visible' And s.warehouse='TOR' Then 'Maersk-TOR'
+  WHEN s.source3pl= 'Shiphero' And s.warehouse LIKE'%Reynosa%' Then 'FSD-Reynosa'
+  WHEN s.source3pl= 'Shiphero' And s.warehouse LIKE'%TX%' Then 'FSD-Reynosa'
+  WHEN s.source3pl= 'Shiphero' And s.warehouse LIKE '%Tecate%' Then 'FSD-Tecate'
+  WHEN s.source3pl= 'Shiphero' And s.warehouse LIKE '%DTC%' Then 'FSD-Tecate'
+  WHEN s.source3pl= 'Shiphero' And s.warehouse LIKE '%Toronto%' Then 'FSD-Hamilton'
+  WHEN s.source3pl= 'Shiphero' And s.warehouse LIKE '%BFS%' Then 'FSD-Hamilton'
+  WHEN s.source3pl= 'SEKO' And s.warehouse ='DCCL01' Then 'SEKO-UK'
+  WHEN s.source3pl= 'SEKO' And s.warehouse ='DCRTDM02' Then 'SEKO-NL'
+  WHEN s.source3pl= 'ShipStation' And s.warehouse ='Trade Place' Then 'Trade Place'
+  WHEN s.source3pl= 'TFI' Then 'TFI'
+       Else s.warehouse END As Warehouse,
+s.shipmentdate AS Fulfilled_Date,
+CASE WHEN s.carrier  = 'dhl_ecommerce' THEN 'DHL_Ecommerce'
+       WHEN s.carrier = 'DHLeCommerce' Then 'DHL_Ecommerce'
+      WHEN s.carrier = 'shippo__usps' Then 'USPS'
+      WHEN s.carrier = 'shippo__ontrac' Then 'On Trac'
+      WHEN s.carrier = 'international_bridge' Then 'USPS'
+       Else s.carrier END As carrier,
+CASE WHEN UPPER(s.method) ='USPS.GROUND.ADVANTAGE' THEN 'USPS GROUND ADVANTAGE'
+WHEN UPPER(s.method) ='USPS_GROUND_ADVANTAGE' THEN 'USPS GROUND ADVANTAGE'
+WHEN UPPER(s.method) ='USPS_GROUND_ADVANTAGE' THEN 'USPS GROUND ADVANTAGE'
+WHEN UPPER(s.method) ='UPS.SUPERPOST' THEN 'UPS SUPERPOST'
+WHEN UPPER(s.method) ='UPS GROUND' THEN 'UPS GROUND'
+WHEN UPPER(s.method) ='USPS_PRIORITY' THEN 'USPS PRIORITY'
+WHEN s.Source3PL= 'Shiphero' AND UPPER(s.method) ='EXP' THEN 'DHL PARCEL EXPEDITED'
+WHEN s.Source3PL= 'Shiphero'  AND UPPER(s.method) ='GND' THEN 'DHL SMARTMAIL PARCEL GROUND'
+WHEN s.Source3PL= 'Shiphero'  AND UPPER(s.method) ='MAX' THEN 'DHL PARCEL EXPEDITED MAX'
+ELSE UPPER(s.method) END as method,
+-- standardized the name for shipping method and update the international bridge as USPS carrier--
+s.ShippingZone,
+s.company,
+s.zipcode,
+s.ShortZip,
+s.sku,
+s.ItemDescription,
+s.QuantityShipped,
+s.country AS 'Ship_To_Country',
+s.state AS 'Ship_To_State',
+s.trackingnumber
+From ShipmentTransactions3PL s
+WHERE s.ShipmentDate >='2025-01-01'
+
+;;
+
+  sql_trigger_value: SELECT DATEPART(day, GETDATE()) ;;
+}
+
+##### DIMENSIONS #####
+
+dimension: Order_Number{
+  primary_key: yes
+  type: string
+  sql: ${TABLE}.Order_Number;;
+}
+
+
+dimension: Warehouse{
+  type: string
+  sql: ${TABLE}.Warehouse;;
+}
+
+dimension_group: Fulfilled_Date {
+  type: time
+  convert_tz: no
+  timeframes: [raw, time, date, day_of_week, day_of_week_index, week, week_of_year, month, month_name, month_num, quarter, year]
+  sql: ${TABLE}.Fulfilled_Date ;;
+}
+
+dimension: carrier{
+  type: string
+  sql: ${TABLE}.carrier;;
+}
+dimension: ship_method{
+  type: string
+  sql: ${TABLE}.method;;
+}
+
+dimension: Shipping_zone{
+  type: string
+  sql: ${TABLE}.shippingzone;;
+}
+
+  dimension: Company{
+    type: string
+    sql: ${TABLE}.company;;
+  }
+
+  dimension: zipcode{
+    type: string
+    sql: ${TABLE}.zipcode;;
+  }
+
+  dimension: short_zipcode{
+    type: string
+    sql: ${TABLE}.shortzip;;
+  }
+
+dimension: sku{
+  type: string
+  sql: ${TABLE}.sku;;
+}
+
+  dimension: ItemDescription{
+    type: string
+    sql: ${TABLE}.ItemDescription;;
+  }
+
+dimension: quantityshipped{
+  type: number
+  sql: ${TABLE}.quantityshipped;;
+}
+
+
+dimension: Ship_To_Country{
+  type: string
+  sql: ${TABLE}.Ship_To_Country;;
+}
+
+
+
+  dimension: Ship_To_State{
+    type: string
+    sql: ${TABLE}.Ship_To_State;;
+  }
+
+  dimension: trackingnumber{
+    type: string
+    sql: ${TABLE}.trackingnumber;;
+  }
+
+measure: Total_Number_Of_Orders {
+  type: count_distinct
+  value_format_name: decimal_0
+  sql: ${Order_Number} ;;
+}
+
+measure: Total_Number_Of_Unit {
+  type: sum
+  value_format_name: decimal_0
+  sql: ${quantityshipped} ;;
+}
+}
