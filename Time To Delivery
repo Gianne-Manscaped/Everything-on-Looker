@@ -1,0 +1,281 @@
+view: time_to_delivery {
+  derived_table: {
+    indexes: ["SalesOrderNumber"]
+    sql:
+
+SELECT
+soh.period,
+soh.Shipping_Province As State,
+soh.Shipping_Country,
+CASE WHEN soh.TAGS LIKE '%CS-%' THEN 'CS ORDER'
+WHEN soh.TAGS LIKE '%RECURRING%' THEN 'VIP'
+WHEN soh.TAGS LIKE '%Subscription%' THEN 'VIP' ELSE 'First-Time-Order_Or_Off-Cycle' END AS 'Order_Category',
+t.SalesOrderNumber,
+soh.Created_at As Ordered_Date,
+t.Fulfilled_Date,
+t.Delivery_Date,
+t.WMS_System_Receipt_Date,
+DateDiff(day,soh.Created_at, Fulfilled_Date) AS Days_To_Fulfill,
+DateDiff (day,Fulfilled_Date,Delivery_Date) AS Days_In_Transit,
+DateDiff(day,soh.Created_at, Delivery_Date) AS Days_Total,
+DateDiff (day,WMS_System_Receipt_Date,Delivery_Date) AS Days_From_WMS_System_Receipt_Date_To_Delivery,
+DateDiff (day,WMS_System_Receipt_Date,Fulfilled_Date) AS Days_From_WMS_System_Receipt_Date_To_Fulfill,
+
+ (DATEDIFF(day, soh.Created_at, Delivery_Date) + 1)
+  -(DATEDIFF(week, soh.Created_at, Delivery_Date) * 2)
+  -(CASE WHEN DATENAME(dw, soh.Created_at) = 'Sunday' THEN 1 ELSE 0 END)
+  -(CASE WHEN DATENAME(dw, Delivery_Date) = 'Saturday' THEN 1 ELSE 0 END)
+AS Business_Days_Total,
+t.locationgroupid,
+t.locations,
+t.source3pl,
+CASE WHEN t.source3PL ='NPF' THEN 'NPF'
+          WHEN t.Source3PL= 'Visible' And t.Locations ='ATL' Then 'Maersk-ATL'
+          WHEN t.Source3PL= 'Visible' And t.Locations ='TOR' Then 'Maersk-TOR'
+          WHEN t.Source3PL= 'Shiphero' And t.Locations LIKE'%Texas%' Then 'FSD-Reynosa'
+          WHEN t.Source3PL= 'Shiphero' And t.Locations LIKE'%TX%' Then 'FSD-Reynosa'
+          WHEN t.source3pl= 'Shiphero' And t.Locations LIKE'%Reynosa%' Then 'FSD-Reynosa'
+          WHEN t.Source3PL= 'Shiphero' And t.Locations = 'Manscaped-DTC' Then 'FSD-Tecate'
+          WHEN t.Source3PL= 'Shiphero' And t.Locations LIKE '%Tecate%' Then 'FSD-Tecate'
+          WHEN t.Source3PL= 'Shiphero' And t.Locations LIKE '%Toronto%' Then 'FSD-Hamilton'
+          WHEN t.Source3PL= 'Shiphero' And t.Locations LIKE '%BFS%' Then 'FSD-Hamilton'
+          WHEN t.Source3PL= 'Shiphero' AND soh.Shipping_Country ='CA' And t.Locations ='default' Then 'FSD-Hamilton'
+          WHEN t.Source3PL= 'Shiphero' AND soh.Shipping_Country ='US' And t.Locations ='default' Then 'FSD-Unknown'
+          WHEN t.Source3PL= 'SEKO' And t.Locations ='DCCL01' Then 'SEKO-UK'
+          WHEN t.Source3PL= 'SEKO' And t.Locations ='DCRTDM02' Then 'SEKO-NL'
+          WHEN t.Source3PL= 'Shiphero' And t.Locations ='Trade Place' Then 'Trade Place'
+          WHEN t.Source3PL= 'TFI' Then 'TFI'
+          Else coalesce (t.Source3PL,t.locations)
+                  END AS Warehouse
+from (
+SELECT
+  s.SalesOrderNumber as SalesOrderNumber,
+  sf3.StatusDate  as WMS_System_Receipt_Date,
+  sf2.StatusDate  as Fulfilled_Date,
+  sf.StatusDate as Delivery_Date,
+  l.locationgroupid,
+  l.locations,
+  l.source3pl
+  FROM SourceSystemDim ss
+  INNER JOIN SalesOrderStatusDim sos2 ON sos2.Status = 'Fulfilled'
+  INNER JOIN SalesOrderStatusFact sf2 ON ss.SourceSystemId = sf2.SourceSystemId AND sos2.SalesOrderStatusId = sf2.SalesOrderStatusId
+  LEFT JOIN SalesOrderStatusDim sos ON sos.Status = 'Delivered'
+  LEFT JOIN SalesOrderStatusFact sf ON sos.SalesOrderStatusId = sf.SalesOrderStatusId AND sf.SourceSystemId = sf2.SourceSystemId and sf.SalesOrderId = sf2.SalesOrderId
+  LEFT JOIN SalesOrderStatusDim sos3 ON sos3.Status = 'Open'
+  LEFT JOIN SalesOrderStatusFact sf3 ON sos3.SalesOrderStatusId = sf3.SalesOrderStatusId AND sf2.SourceSystemId = sf3.SourceSystemId and sf2.SalesOrderId = sf3.SalesOrderId
+  INNER JOIN SalesOrderDim s ON sf2.SalesOrderId = s.SalesOrderId
+  INNER JOIN LocationGroupDim l ON sf2.LocationGroupId =l.LocationGroupId
+WHERE  sf2.statusdate >='2023-05-01'
+) t
+INNER JOIN ShopifyOrdersHeader soh
+ON t.SalesOrderNumber = soh.OrderNumber
+WHERE soh.period >=202305
+      ;;
+    sql_trigger_value: SELECT DATEPART(hour, GETDATE()) ;;
+
+
+  }
+# Dimension Groups
+
+  dimension_group: Ordered {
+    type: time
+    convert_tz: no
+    timeframes: [raw, time, date, day_of_week, day_of_week_index, week, week_of_year, month, month_name, month_num, quarter, year]
+    sql: ${TABLE}.Ordered_Date ;;
+  }
+
+  dimension_group: Fulfilled {
+    type: time
+    convert_tz: no
+    timeframes: [raw, time, date, day_of_week, day_of_week_index, week, week_of_year, month, month_name, month_num, quarter, year]
+    sql: ${TABLE}.Fulfilled_Date ;;
+  }
+
+  dimension_group: Delivery{
+    type: time
+    convert_tz: no
+    timeframes: [raw, time, date, day_of_week, day_of_week_index, week, week_of_year, month, month_name, month_num, quarter, year]
+    sql: ${TABLE}.Delivery_Date ;;
+  }
+
+  dimension_group: WMS_System_Receipt {
+    type: time
+    convert_tz: no
+    timeframes: [raw, time, date, day_of_week, day_of_week_index, week, week_of_year, month, month_name, month_num, quarter, year]
+    sql: ${TABLE}.WMS_System_Receipt_Date ;;
+  }
+
+  dimension: SalesOrderNumber {
+    type: string
+    primary_key: yes
+    sql: ${TABLE}.SalesOrderNumber ;;
+  }
+  dimension: warehouse {
+    type: string
+    sql: ${TABLE}.warehouse ;;
+  }
+
+  dimension: Order_Category {
+    type: string
+    sql: ${TABLE}.Order_Category ;;
+  }
+
+
+  dimension: period {
+    type: string
+    sql: ${TABLE}.period ;;
+  }
+
+  dimension: locations {
+    type: string
+    sql: ${TABLE}.locations ;;
+  }
+
+  dimension: source3pl {
+    type: string
+    sql: ${TABLE}.source3pl ;;
+  }
+
+  dimension: carrier {
+    type: string
+    hidden: yes
+    sql: ${TABLE}.carrier ;;
+  }
+
+  dimension: shipmethod {
+    type: string
+    hidden: yes
+    sql: ${TABLE}.shipmethod ;;
+  }
+
+  dimension: order{
+    type: string
+    sql: ${TABLE}.period ;;
+  }
+
+  dimension: State {
+    type: string
+    sql: ${TABLE}.State ;;
+  }
+
+  dimension: Ship_To_Country {
+    type: string
+    sql: ${TABLE}.Shipping_Country;;
+  }
+
+
+  dimension: Days_To_Fulfill {
+    type: number
+    sql: ${TABLE}.Days_To_Fulfill ;;
+  }
+  dimension: Days_In_Transit {
+    type: number
+
+    sql: ${TABLE}.Days_In_Transit ;;
+  }
+
+  dimension: Days_Total {
+    type: number
+    sql: ${TABLE}.Days_Total ;;
+  }
+
+  dimension: Days_From_WMS_System_Receipt_Date_To_Fulfill{
+    type: number
+    sql: ${TABLE}.Days_From_WMS_System_Receipt_Date_To_Fulfill ;;
+  }
+
+  dimension: Business_Days_Total{
+    type: number
+    sql: ${TABLE}.Business_Days_Total ;;
+  }
+
+  dimension: Days_From_WMS_System_Receipt_Date_To_Delivery{
+    type: number
+    sql: ${TABLE}.Days_From_WMS_System_Receipt_Date_To_Delivery ;;
+  }
+
+
+  measure: Average_Business_Day_From_Click_To_Delivery{
+    type: average
+    value_format_name: decimal_1
+    label: "Avg Business Day From Click To Delivery"
+    group_label: "Core CPI's"
+    description: "Avg Business Day From Click To Delivery"
+    sql: ${Business_Days_Total};;
+  }
+
+  measure: avg_Days_To_Fulfill{
+    type: average
+    value_format_name: decimal_2
+    hidden: yes
+    label: "Avg Days to Fulfill "
+    group_label: "Core CPI's"
+    description: "Avg Days to Fulfill"
+    sql: ${Days_To_Fulfill};;
+  }
+
+  measure: avg_Days_In_Transit{
+    type: average
+    value_format_name: decimal_2
+    hidden: yes
+    label: "Avg Days In Transit "
+    group_label: "Core CPI's"
+    description: "Avg Days In Transit"
+    sql: ${Days_In_Transit};;
+  }
+
+  measure: avg_Days_Total{
+    type: average
+    hidden: yes
+    value_format_name: decimal_2
+    label: "Avg Days Total "
+    group_label: "Core CPI's"
+    description: "Avg Days Total"
+    sql: ${Days_Total};;
+  }
+
+  measure: avg_Days_From_WMS_System_Receipt_Date_To_Fulfill{
+    type: average
+    hidden: yes
+    value_format_name: decimal_2
+    label: "Avg Days_From_WMS_System_Receipt_Date_To_Fulfill "
+    group_label: "Core CPI's"
+    description: "Avg Days_From_WMS_System_Receipt_Date_To_Fulfill"
+    sql: ${Days_From_WMS_System_Receipt_Date_To_Fulfill};;
+  }
+  measure: Total_Days_To_Fulfill{
+    type: sum
+    value_format_name: decimal_2
+    label: "Total Days to Fulfill "
+    group_label: "Core CPI's"
+    description: "Total Days to Fulfill"
+    sql: ${Days_To_Fulfill};;
+  }
+
+  measure: Total_Days_In_Transit{
+    type: sum
+    value_format_name: decimal_2
+    label: "Total Days In Transit "
+    group_label: "Core CPI's"
+    description: "Total Days In Transit"
+    sql: ${Days_In_Transit};;
+  }
+
+  measure: Total_Days_Total{
+    type: sum
+    value_format_name: decimal_2
+    label: "Total Days Total "
+    group_label: "Core CPI's"
+    description: "Total Days Total"
+    sql: ${Days_Total};;
+  }
+
+  measure: Total_Days_From_WMS_System_Receipt_Date_To_Fulfill{
+    type: sum
+    value_format_name: decimal_2
+    label: "Total Days_From_WMS_System_Receipt_Date_To_Fulfill "
+    group_label: "Core CPI's"
+    description: "Total Days_From_WMS_System_Receipt_Date_To_Fulfill"
+    sql: ${Days_From_WMS_System_Receipt_Date_To_Fulfill};;
+  }
+}
