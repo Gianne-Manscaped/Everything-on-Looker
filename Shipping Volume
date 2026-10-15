@@ -1,0 +1,146 @@
+iew: shipping_volume {
+  derived_table: {
+    indexes: ["SalesOrderNumber"]
+    sql:
+SELECT  sod.status,
+        g.Period,
+        g.SalesOrderNumber,
+        g.Shipping_Country,
+        g.Shipping_State,
+        CAST (sosf.StatusDate as Date) AS Fulfilled_Date,
+        l.source3pl,
+        CASE
+            WHEN l.source3PL ='NPF' THEN 'NPF'
+            WHEN l.Source3PL= 'Visible' And l.Locations ='ATL' Then 'Maersk-ATL'
+            WHEN l.Source3PL= 'Visible' And l.Locations ='TOR' Then 'Maersk-TOR'
+            WHEN l.Source3PL= 'Shiphero' And l.Locations ='Texas' Then 'FSD-Reynosa'
+            WHEN l.Source3PL= 'Shiphero' And l.Locations LIKE 'Manscaped-DTC%' Then 'FSD-Baja'
+            WHEN l.Source3PL= 'Shiphero' And l.Locations LIKE 'BFS-H%' Then 'FSD-Hamilton'
+            WHEN l.Source3PL= 'Shiphero' And l.Locations ='Default' AND g.Shipping_Country ='US' Then 'FSD_Unknown'
+            WHEN l.Source3PL= 'Shiphero' And l.Locations ='Default' AND g.Shipping_Country ='CA' Then 'FSD-Hamilton'
+            WHEN l.Source3PL= 'SEKO' And l.Locations ='DCCL01' Then 'SEKO-UK'
+            WHEN l.Source3PL= 'SEKO' And l.Locations ='DCRTDM02' Then 'SEKO-NL'
+            WHEN l.Source3PL= 'ShipStation' And l.Locations ='Trade Place' Then 'Trade Place'
+            WHEN l.Source3PL= 'TFI' Then 'TFI'
+            Else coalesce (l.Source3PL,l.locations)
+        END AS Warehouse,
+        CASE
+            WHEN g.Has_Subs = 0 Then 'First-Time-Order_&_Off-Cycle'
+            WHEN g.period < 202601 AND l.source3PL ='NPF' THEN 'VIP_Kitting-On-The-Fly'
+            WHEN g.Has_Subs >= 1  AND g.period >= 202601 AND g.Is_PHP = 0 THEN 'VIP_Kitting-On-The-Fly'
+            WHEN g.Has_Subs >= 1  AND g.period >= 202601 AND (g.Is_PHP > 1 or g.Order_Quantity > 1) THEN 'VIP_Kitting-On-The-Fly'
+            WHEN g.Has_Subs >= 1  AND g.period >= 202601 AND g.Is_PHP = 1 And g.Order_Quantity = 1 THEN 'VIP_Pre-kitted'
+            ELSE 'VIP_Kitting-On-The-Fly' END AS Order_Type
+FROM    SalesOrderStatusDim sod
+INNER   JOIN SalesOrderStatusFact sosf ON sod.SalesOrderStatusId = sosf.SalesOrderStatusId AND sod.SalesOrderStatusId =3
+INNER   JOIN LocationGroupDim l ON sosf.locationgroupid = l.locationgroupid
+INNER   JOIN SalesOrderDim s ON sosf.SalesOrderId =s.SalesOrderId
+INNER   JOIN (SELECT  so.Period,
+            so.OrderNumber AS SalesOrderNumber,
+            so.shipping_Country,
+            so.Shipping_Province As Shipping_State,
+            SUM(so.lineitem_quantity) AS Order_Quantity,
+            SUM(    CASE
+                        WHEN so.tags LIKE '%Recurring%' THEN 1
+                        WHEN so.tags LIKE '%Subscription%' THEN 1
+                        ELSE 0
+                    END
+            ) Has_Subs,
+            SUM( CASE WHEN i.IScorePHP = 1 THEN 1 ELSE 0 END) Is_PHP
+    FROM    ItemDIM i
+    INNER   JOIN ShopifyOrders so ON i.sku = so.lineitem_sku AND i.SourceSystem = 'NetSuite'
+    WHERE   so.tags IS NOT NULL
+    GROUP   BY so.Period,so.ordernumber,so.shipping_Country,so.Shipping_Province
+) g ON s.SalesOrderNumber = g.SalesOrderNumber
+WHERE   sod.status = 'Fulfilled' and g.period >= 202305
+Group by sod.status,
+        g.Period,
+        g.SalesOrderNumber,
+        g.Shipping_Country,
+        g.Shipping_State,
+        CAST (sosf.StatusDate as Date),
+        l.source3pl,
+        CASE
+            WHEN l.source3PL ='NPF' THEN 'NPF'
+            WHEN l.Source3PL= 'Visible' And l.Locations ='ATL' Then 'Maersk-ATL'
+            WHEN l.Source3PL= 'Visible' And l.Locations ='TOR' Then 'Maersk-TOR'
+            WHEN l.Source3PL= 'Shiphero' And l.Locations ='Texas' Then 'FSD-Reynosa'
+            WHEN l.Source3PL= 'Shiphero' And l.Locations LIKE 'Manscaped-DTC%' Then 'FSD-Baja'
+            WHEN l.Source3PL= 'Shiphero' And l.Locations LIKE 'BFS-H%' Then 'FSD-Hamilton'
+            WHEN l.Source3PL= 'Shiphero' And l.Locations ='Default' AND g.Shipping_Country ='US' Then 'FSD_Unknown'
+            WHEN l.Source3PL= 'Shiphero' And l.Locations ='Default' AND g.Shipping_Country ='CA' Then 'FSD-Hamilton'
+            WHEN l.Source3PL= 'SEKO' And l.Locations ='DCCL01' Then 'SEKO-UK'
+            WHEN l.Source3PL= 'SEKO' And l.Locations ='DCRTDM02' Then 'SEKO-NL'
+            WHEN l.Source3PL= 'ShipStation' And l.Locations ='Trade Place' Then 'Trade Place'
+            WHEN l.Source3PL= 'TFI' Then 'TFI'
+            Else coalesce (l.Source3PL,l.locations)
+        END,
+        CASE
+            WHEN g.Has_Subs = 0 Then 'First-Time-Order_&_Off-Cycle'
+            WHEN g.period < 202601 AND l.source3PL ='NPF' THEN 'VIP_Kitting-On-The-Fly'
+            WHEN g.Has_Subs >= 1  AND g.period >= 202601 AND g.Is_PHP = 0 THEN 'VIP_Kitting-On-The-Fly'
+            WHEN g.Has_Subs >= 1  AND g.period >= 202601 AND (g.Is_PHP > 1 or g.Order_Quantity > 1) THEN 'VIP_Kitting-On-The-Fly'
+            WHEN g.Has_Subs >= 1  AND g.period >= 202601 AND g.Is_PHP = 1 And g.Order_Quantity = 1 THEN 'VIP_Pre-kitted'
+            ELSE 'VIP_Kitting-On-The-Fly' END
+
+;;
+    sql_trigger_value: SELECT DATEPART(day, GETDATE()) ;;
+
+
+
+  }
+##### DIMENSIONS #####
+
+    dimension: status{
+    type: string
+    sql: ${TABLE}.status;;
+  }
+
+
+  dimension: SalesOrderNumber{
+    primary_key: yes
+    type: string
+    sql: ${TABLE}.SalesOrderNumber;;
+  }
+  dimension: Shipping_Country{
+    type: string
+    sql: ${TABLE}.Shipping_Country;;
+  }
+
+  dimension: Shipping_State{
+    type: string
+    sql: ${TABLE}.Shipping_State;;
+  }
+  dimension_group: Fulfilled_Date {
+    type: time
+    convert_tz: no
+    timeframes: [raw, time, date, day_of_week, day_of_week_index, week, week_of_year, month, month_name, month_num, quarter, year]
+    sql: ${TABLE}.Fulfilled_Date ;;
+  }
+  dimension: source3pl{
+    type: string
+    sql: ${TABLE}.source3pl;;
+  }
+
+  dimension: Warehouse{
+    type: string
+    sql: ${TABLE}.Warehouse;;
+  }
+  dimension: Order_Type{
+    type: string
+    sql: ${TABLE}.Order_Type;;
+  }
+
+  measure: Total_Number_Of_Orders {
+    type: count_distinct
+    value_format_name: decimal_0
+    sql: ${SalesOrderNumber} ;;
+  }
+
+
+measure: Average_Number_Of_Orders {
+  type: average_distinct
+  value_format_name: decimal_0
+  sql: ${SalesOrderNumber} ;;
+}
+}
