@@ -1,0 +1,187 @@
+iew: outbound_shipping_consolidated {
+    derived_table: {
+      indexes: ["zipcode"]
+      sql:
+       Select COUNT(DISTINCT so.ordernumber) AS Number_Of_Orders,
+CASE
+  WHEN s.Source3PL= 'Shiphero' And s.warehouse LIKE'%Texas%' Then 'FSD-Reynosa'
+  WHEN s.Source3PL= 'Shiphero' And s.warehouse LIKE '%Tecate%' Then 'FSD-Baja'
+  WHEN s.Source3PL= 'Shiphero' And s.warehouse LIKE '%BFS-H%' Then 'FSD-Hamilton'
+  WHEN s.Source3PL= 'Shiphero' And so.shipping_country  ='CA' Then 'FSD-Hamilton'
+  WHEN s.Source3PL= 'Shiphero' And so.shipping_country  ='US' And s.warehouse  ='default' Then 'FSD_Unknown'
+  WHEN s.warehouse = 'ATL' THEN 'Maersk-ATL'
+  WHEN s.warehouse = 'TOR' THEN 'Maersk-TOR'
+  WHEN s.warehouse = 'MANCAP' THEN 'NPF'
+  WHEN s.warehouse = 'MANCWS' THEN 'NPF-Retail&Amazon'
+  WHEN s.warehouse = 'MANCEI' THEN 'NPF-Retail EDI'
+  WHEN s.warehouse = 'DCCL01' THEN 'SEKO-UK'
+  WHEN s.warehouse = 'DCRTDM02' THEN 'SEKO-NL'
+       Else s.warehouse END As Warehouse,
+DATETRUNC (day,so.Created_at) AS orderdate,
+DATETRUNC (day,s.shipmentdate) AS shipdate,
+so.fulfillment_status,
+CASE WHEN s.carrier  = 'dhl_ecommerce' THEN 'DHL_Ecommerce'
+       WHEN s.carrier = 'DHLeCommerce' Then 'DHL_Ecommerce'
+      WHEN s.carrier = 'shippo__usps' Then 'USPS'
+      WHEN s.carrier = 'shippo__ontrac' Then 'On Trac'
+      WHEN s.carrier = 'international_bridge' Then 'USPS'
+       Else s.carrier END As carrier,
+CASE WHEN UPPER(s.method) ='USPS.GROUND.ADVANTAGE' THEN 'USPS GROUND ADVANTAGE'
+WHEN UPPER(s.method) ='USPS_GROUND_ADVANTAGE' THEN 'USPS GROUND ADVANTAGE'
+WHEN UPPER(s.method) ='USPS_GROUND_ADVANTAGE' THEN 'USPS GROUND ADVANTAGE'
+WHEN UPPER(s.method) ='UPS.SUPERPOST' THEN 'UPS SUPERPOST'
+WHEN UPPER(s.method) ='UPS GROUND' THEN 'UPS GROUND'
+WHEN UPPER(s.method) ='USPS_PRIORITY' THEN 'USPS PRIORITY'
+WHEN s.Source3PL= 'Shiphero' AND UPPER(s.method) ='EXP' THEN 'DHL PARCEL EXPEDITED'
+WHEN s.Source3PL= 'Shiphero'  AND UPPER(s.method) ='GND' THEN 'DHL SMARTMAIL PARCEL GROUND'
+WHEN s.Source3PL= 'Shiphero'  AND UPPER(s.method) ='MAX' THEN 'DHL PARCEL EXPEDITED MAX'
+ELSE UPPER(s.method) END as method,
+-- standardized the name for shipping method and update the international bridge as USPS carrier--
+f.Zone,
+s.company,
+s.zipcode,
+s.ShortZip,
+SUM(s.quantityshipped) As Number_Of_Units,
+s.period,
+so.shipping_country,
+so.Shipping_Province AS state
+From ShipmentTransactions3PL s
+INNER JOIN ShopifyOrders so ON s.TransactionNumber =so.ordernumber
+LEFT JOIN fpa3pl f on s.TransactionNumber =f.ordernumber
+WHERE so.Created_at >='2023-05-01' AND so.Fulfillment_Status ='fulfilled'
+GROUP BY
+CASE    WHEN s.Source3PL= 'Shiphero' And s.warehouse LIKE'%Texas%' Then 'FSD-Reynosa'
+  WHEN s.Source3PL= 'Shiphero' And s.warehouse LIKE '%Tecate%' Then 'FSD-Baja'
+  WHEN s.Source3PL= 'Shiphero' And s.warehouse LIKE '%BFS-H%' Then 'FSD-Hamilton'
+  WHEN s.Source3PL= 'Shiphero' And so.shipping_country  ='CA' Then 'FSD-Hamilton'
+  WHEN s.Source3PL= 'Shiphero' And so.shipping_country  ='US' And s.warehouse  ='default' Then 'FSD_Unknown'
+  WHEN s.warehouse = 'ATL' THEN 'Maersk-ATL'
+  WHEN s.warehouse = 'TOR' THEN 'Maersk-TOR'
+  WHEN s.warehouse = 'MANCAP' THEN 'NPF'
+  WHEN s.warehouse = 'MANCWS' THEN 'NPF-Retail&Amazon'
+  WHEN s.warehouse = 'MANCEI' THEN 'NPF-Retail EDI'
+  WHEN s.warehouse = 'DCCL01' THEN 'SEKO-UK'
+  WHEN s.warehouse = 'DCRTDM02' THEN 'SEKO-NL'
+       Else s.warehouse END,
+DATETRUNC (day,so.Created_at),
+DATETRUNC (day,s.shipmentdate),
+so.fulfillment_status,
+CASE WHEN s.carrier  = 'dhl_ecommerce' THEN 'DHL_Ecommerce'
+       WHEN s.carrier = 'DHLeCommerce' Then 'DHL_Ecommerce'
+      WHEN s.carrier = 'shippo__usps' Then 'USPS'
+      WHEN s.carrier = 'shippo__ontrac' Then 'On Trac'
+      WHEN s.carrier = 'international_bridge' Then 'USPS'
+       Else s.carrier END,
+CASE WHEN UPPER(s.method) ='USPS.GROUND.ADVANTAGE' THEN 'USPS GROUND ADVANTAGE'
+WHEN UPPER(s.method) ='USPS_GROUND_ADVANTAGE' THEN 'USPS GROUND ADVANTAGE'
+WHEN UPPER(s.method) ='USPS_GROUND_ADVANTAGE' THEN 'USPS GROUND ADVANTAGE'
+WHEN UPPER(s.method) ='UPS.SUPERPOST' THEN 'UPS SUPERPOST'
+WHEN UPPER(s.method) ='UPS GROUND' THEN 'UPS GROUND'
+WHEN UPPER(s.method) ='USPS_PRIORITY' THEN 'USPS PRIORITY'
+WHEN s.Source3PL= 'Shiphero' AND UPPER(s.method) ='EXP' THEN 'DHL PARCEL EXPEDITED'
+WHEN s.Source3PL= 'Shiphero'  AND UPPER(s.method) ='GND' THEN 'DHL SMARTMAIL PARCEL GROUND'
+WHEN s.Source3PL= 'Shiphero'  AND UPPER(s.method) ='MAX' THEN 'DHL PARCEL EXPEDITED MAX'
+ELSE UPPER(s.method) END,
+f.Zone,
+s.company,
+s.zipcode,
+s.ShortZip,
+s.period,
+so.shipping_country,
+so.Shipping_Province
+--update sql trigger value from day to month to reduce PDT daily loading time behind both dashboards --
+;;
+      sql_trigger_value: SELECT DATEPART(month, GETDATE()) ;;
+    }
+
+
+##### DIMENSIONS #####
+
+    dimension: Number_Of_Orders{
+      type: number
+      sql: ${TABLE}.Number_Of_Orders;;
+    }
+
+    dimension: Number_Of_Units{
+      type: number
+      sql: ${TABLE}.Number_Of_Units;;
+    }
+
+
+    dimension: Warehouse{
+      type: string
+      sql: ${TABLE}.Warehouse;;
+    }
+
+    dimension_group: shipdate {
+      type: time
+      convert_tz: no
+      timeframes: [raw, time, date, day_of_week, day_of_week_index, week, week_of_year, month, month_name, month_num, quarter, year]
+      sql: ${TABLE}.shipdate ;;
+    }
+
+
+    dimension_group: orderdate {
+      type: time
+      convert_tz: no
+      timeframes: [raw, time, date, day_of_week, day_of_week_index, week, week_of_year, month, month_name, month_num, quarter, year]
+      sql: ${TABLE}.orderdate ;;
+    }
+
+    dimension: Fulfillment_Status{
+      type: string
+      sql: ${TABLE}.fulfillment_status;;
+    }
+
+    dimension: Carrier{
+      type: string
+      sql: ${TABLE}.carrier;;
+    }
+    dimension: Ship_Method{
+      type: string
+      sql: ${TABLE}.method;;
+    }
+
+    dimension: Shipping_Zone{
+      type: string
+      sql: ${TABLE}.Zone;;
+    }
+
+    dimension: Long_Zipcode{
+      type: string
+      sql: ${TABLE}.zipcode;;
+    }
+
+  dimension: Zip_Code{
+    type: string
+    sql: ${TABLE}.shortzip;;
+  }
+
+    dimension: period{
+      type: string
+      sql: ${TABLE}.period;;
+    }
+
+
+    dimension: Ship_To_Country{
+      type: string
+      sql: ${TABLE}.Shipping_Country;;
+    }
+
+  dimension: Ship_To_State{
+    type: string
+    sql: ${TABLE}.State;;
+  }
+
+    measure: Total_Number_Of_Orders {
+      type: sum
+      value_format_name: decimal_0
+      sql: ${Number_Of_Orders} ;;
+    }
+
+    measure: Total_Number_Of_Units{
+      type: sum
+      value_format_name: decimal_0
+      sql: ${Number_Of_Units} ;;
+    }
+}
