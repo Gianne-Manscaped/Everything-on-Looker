@@ -1,0 +1,83 @@
+iew: back_orders_header {
+       derived_table: {
+    indexes: ["Ordernumber"]
+    sql:
+       Select
+  s.OrderNumber,
+  s.Created_at,
+  s.Cancelled_at,
+  s.Tags,
+  s.Fulfilled_at,
+  s.Shipping_City,
+  s.Shipping_Zip,
+  s.Shipping_Province,
+  s.Shipping_Country,
+  CASE
+    WHEN EXISTS (
+      SELECT 1
+      FROM BackOrders3PL bo
+      WHERE bo.OrderNumber = s.OrderNumber
+        AND bo.Quantity IS NOT NULL
+    ) THEN 'Yes'
+    ELSE 'No'
+  END AS 'Is_Back_Order'
+FROM ShopifyOrdersHeader s
+WHERE s.Created_at >= '2025-01-01'
+
+
+      ;;
+    sql_trigger_value: SELECT DATEPART(day, GETDATE()) ;;
+
+
+
+  }
+##### DIMENSIONS #####
+
+
+  dimension: Order_Number {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}."ordernumber" ;;
+  }
+
+  dimension_group: created_at{
+    type: time
+    timeframes:  [raw, time, date, day_of_week, day_of_week_index, week, week_of_year, month, month_name, month_num, quarter, year]
+    sql: ${TABLE}."created_at";;
+
+  }
+  dimension_group: cancelled_at{
+    type: time
+    timeframes:  [raw, time, date, day_of_week, day_of_week_index, week, week_of_year, month, month_name, month_num, quarter, year]
+    sql: ${TABLE}."cancelled_at";;
+
+  }
+
+  dimension_group: Fulfilled_at{
+    type: time
+    timeframes:  [raw, time, date, day_of_week, day_of_week_index, week, week_of_year, month, month_name, month_num, quarter, year]
+    sql: ${TABLE}."Fulfilled_at";;
+    }
+
+  dimension: Shipping_City {
+    type: string
+    sql: ${TABLE}."Shipping_City" ;;
+  }
+
+  dimension: Shipping_Zip {
+    type: string
+    sql: ${TABLE}."Shipping_Zip" ;;
+  }
+  dimension: Shipping_Province {
+    type: string
+    sql: ${TABLE}."Shipping_Province" ;;
+  }
+  dimension: Shipping_Country{
+    type: string
+    sql: ${TABLE}."Shipping_Country" ;;
+  }
+  dimension: Is_Back_Order {
+    type: string
+    sql: ${TABLE}."Is_Back_Order" ;;
+  }
+}
