@@ -1,0 +1,135 @@
+view: shopify_order_shipping_location {
+  derived_table: {
+    indexes: ["Order_Number"]
+    sql:
+   Select
+OrderId As 'Order_Number',
+CASE Shipping_Country
+    WHEN 'AU' THEN 'Australia'
+    WHEN 'ES' THEN 'Spain'
+    WHEN 'NL' THEN 'Netherlands'
+    WHEN 'PT' THEN 'Portugal'
+    WHEN 'GB' THEN 'United Kingdom'
+    WHEN 'RS' THEN 'Serbia'
+    WHEN 'FI' THEN 'Finland'
+    WHEN 'HR' THEN 'Croatia'
+    WHEN 'IM' THEN 'Isle of Man'
+    WHEN 'DK' THEN 'Denmark'
+    WHEN 'GR' THEN 'Greece'
+    WHEN 'SE' THEN 'Sweden'
+    WHEN 'CZ' THEN 'Czech Republic'
+    WHEN 'ZA' THEN 'South Africa'
+    WHEN 'NO' THEN 'Norway'
+    WHEN 'LT' THEN 'Lithuania'
+    WHEN 'SI' THEN 'Slovenia'
+    WHEN 'CY' THEN 'Cyprus'
+    WHEN 'LU' THEN 'Luxembourg'
+    WHEN 'DE' THEN 'Germany'
+    WHEN 'NZ' THEN 'New Zealand'
+    WHEN 'BG' THEN 'Bulgaria'
+    WHEN 'BE' THEN 'Belgium'
+    WHEN 'CH' THEN 'Switzerland'
+    WHEN 'SA' THEN 'Saudi Arabia'
+    WHEN 'IE' THEN 'Ireland'
+    WHEN 'MT' THEN 'Malta'
+    WHEN 'IS' THEN 'Iceland'
+    WHEN 'AE' THEN 'United Arab Emirates'
+    WHEN 'HU' THEN 'Hungary'
+    WHEN 'IT' THEN 'Italy'
+    WHEN 'PL' THEN 'Poland'
+    WHEN 'US' THEN 'United States'
+    WHEN 'JP' THEN 'Japan'
+    WHEN 'AT' THEN 'Austria'
+    WHEN 'LV' THEN 'Latvia'
+    WHEN 'FR' THEN 'France'
+    WHEN 'NA' THEN 'Namibia'
+    WHEN 'EE' THEN 'Estonia'
+    WHEN 'RO' THEN 'Romania'
+    WHEN 'TH' THEN 'Thailand'
+    WHEN 'SK' THEN 'Slovakia'
+    WHEN 'JE' THEN 'Jersey'
+    WHEN 'CA' THEN 'Canada'
+    WHEN 'SG' THEN 'Singapore'
+    ELSE Shipping_Country END AS 'Shipping Country',
+CASE
+WHEN  Shipping_Country ='US' AND Shipping_Province ='AL' THEN 'Alabama'
+WHEN Shipping_Country ='US' AND Shipping_Province ='AK' Then 'Alaska'
+WHEN Shipping_Country ='US' AND Shipping_Province ='AS' Then 'American Samoa'
+WHEN Shipping_Country ='US' AND Shipping_Province ='AZ' Then 'Arizona'
+WHEN Shipping_Country ='US' AND Shipping_Province ='AR' Then  'Arkansas'
+WHEN Shipping_Country ='US' AND Shipping_Province ='CA' Then 'California'
+WHEN Shipping_Country ='US' AND Shipping_Province = 'CO' Then 'Colorado'
+WHEN Shipping_Country ='US' AND Shipping_Province ='CT' Then 'Connecticut'
+WHEN Shipping_Country ='US' AND Shipping_Province ='DE' Then  'Delaware'
+WHEN Shipping_Country ='US' AND Shipping_Province ='DC' Then  'District of Columbia'
+WHEN Shipping_Country ='US' AND Shipping_Province ='FL' Then  'Florida'
+WHEN Shipping_Country ='US' AND Shipping_Province ='GA' Then 'Georgia'
+WHEN Shipping_Country ='US' AND Shipping_Province ='GU' Then  'Guam'
+WHEN Shipping_Country ='US' AND Shipping_Province ='HI' Then 'Hawaii'
+WHEN Shipping_Country ='US' AND Shipping_Province ='ID' Then 'Idaho'
+WHEN Shipping_Country ='US' AND Shipping_Province ='IL' Then 'Illinois'
+WHEN Shipping_Country ='US' AND Shipping_Province ='IN' Then 'Indiana'
+WHEN Shipping_Country ='US' AND Shipping_Province ='IA' Then 'Iowa'
+WHEN Shipping_Country ='US' AND Shipping_Province ='KS' Then 'Kansas'
+WHEN Shipping_Country ='US' AND Shipping_Province ='KY' Then 'Kentucky'
+WHEN Shipping_Country ='US' AND Shipping_Province ='LA' Then 'Louisiana'
+WHEN Shipping_Country ='US' AND Shipping_Province ='ME' Then 'Maine'
+WHEN Shipping_Country ='US' AND Shipping_Province ='MD' Then 'Maryland'
+WHEN Shipping_Country ='US' AND Shipping_Province ='MA'  Then 'Massachusetts'
+WHEN Shipping_Country ='US' AND Shipping_Province ='MI'  Then   'Michigan'
+WHEN Shipping_Country ='US' AND Shipping_Province ='MN' Then 'Minnesota'
+WHEN Shipping_Country ='US' AND Shipping_Province ='MS' Then 'Mississippi'
+WHEN Shipping_Country ='US' AND Shipping_Province ='MO' Then  'Missouri'
+WHEN Shipping_Country ='US' AND Shipping_Province ='MT' Then  'Montana'
+WHEN Shipping_Country ='US' AND Shipping_Province ='NE' Then  'Nebraska'
+WHEN Shipping_Country ='US' AND Shipping_Province ='NV' Then  'Nevada'
+WHEN Shipping_Country ='US' AND Shipping_Province ='NH' Then  'New Hampshire'
+WHEN Shipping_Country ='US' AND Shipping_Province ='NJ' Then  'New Jersey'
+WHEN Shipping_Country ='US' AND Shipping_Province ='NM' Then  'New Mexico'
+WHEN Shipping_Country ='US' AND Shipping_Province ='NY' Then 'New York'
+WHEN Shipping_Country ='US' AND Shipping_Province ='NC' Then 'North Carolina'
+WHEN Shipping_Country ='US' AND Shipping_Province ='ND' Then 'North Dakota'
+WHEN Shipping_Country ='US' AND Shipping_Province ='MP' Then  'Northern Mariana Islands'
+WHEN Shipping_Country ='US' AND Shipping_Province ='OH' Then  'Ohio'
+WHEN Shipping_Country ='US' AND Shipping_Province ='OK' Then  'Oklahoma'
+WHEN Shipping_Country ='US' AND Shipping_Province ='OR' Then  'Oregon'
+WHEN Shipping_Country ='US' AND Shipping_Province ='PA' Then  'Pennsylvania'
+WHEN Shipping_Country ='US' AND Shipping_Province ='PR' Then  'Puerto Rico'
+WHEN Shipping_Country ='US' AND Shipping_Province ='RI' Then  'Rhode Island'
+WHEN Shipping_Country ='US' AND Shipping_Province ='SC' Then  'South Carolina'
+WHEN Shipping_Country ='US' AND Shipping_Province ='SD' Then  'South Dakota'
+WHEN Shipping_Country ='US' AND Shipping_Province ='TN' Then  'Tennessee'
+WHEN Shipping_Country ='US' AND Shipping_Province ='TX' Then  'Texas'
+WHEN Shipping_Country ='US' AND Shipping_Province ='UT' Then  'Utah'
+WHEN Shipping_Country ='US' AND Shipping_Province ='VT' Then  'Vermont'
+WHEN Shipping_Country ='US' AND Shipping_Province ='VI' Then  'Virgin Islands'
+WHEN Shipping_Country ='US' AND Shipping_Province ='VA' Then  'Virginia'
+WHEN Shipping_Country ='US' AND Shipping_Province ='WA' Then  'Washington'
+WHEN Shipping_Country ='US' AND Shipping_Province ='DC' Then 'Washington DC'
+WHEN Shipping_Country ='US' AND Shipping_Province ='WV' Then 'West Virginia'
+WHEN Shipping_Country ='US' AND Shipping_Province ='WI' Then  'Wisconsin'
+WHEN Shipping_Country ='US' AND Shipping_Province ='WY' Then 'Wyoming'
+Else Shipping_Province END As 'Shipping_States'
+From ShopifyOrdersHeader
+ ;;
+    sql_trigger_value: SELECT DATEPART(day, GETDATE()) ;;
+  }
+
+##### DIMENSIONS #####
+
+
+  dimension: Order_Number{
+    primary_key: yes
+    type: string
+    sql: ${TABLE}."Order_Number" ;;
+  }
+
+  dimension: Shipping_Country {
+    type: string
+    sql: ${TABLE}."Shipping_Country" ;;
+  }
+  dimension: Shipping_States {
+    type: string
+    sql: ${TABLE}."Shipping_Statesr" ;;
+  }
+}
