@@ -1,0 +1,38 @@
+iew: sku_per_order {
+  derived_table: {
+    indexes: ["Order_Number"]
+    sql:
+    SELECT
+s.Transactionnumber AS 'Order_Number',
+COUNT (s.Sku) as 'Number_Of_SKU_Shipped',
+SUM(s.QuantityShipped) as 'Total_Number_Of_Qty_Shipped',
+SUM(s.quantityordered) as 'Total_Number_Of_Qty_Ordered'
+From shipmenttransactions3pl s
+Where ShipmentDate >='2025-01-01' and s.transactionnumber LIKE 'MAN%'
+Group by s.Transactionnumber
+
+      ;;
+    sql_trigger_value: SELECT DATEPART(day, GETDATE()) ;;
+
+
+
+  }
+##### DIMENSIONS #####
+
+  dimension: Order_Number {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}."Order_Number" ;;
+  }
+
+  dimension: Number_Of_SKU_Shipped {
+    type: number
+    sql: ${TABLE}."Number_Of_SKU_Shipped";;
+  }
+
+  dimension: Total_Qty_Shipped_In_The_Order{
+    type: number
+    sql: ${TABLE}."Total_Number_Of_Qty_Shipped";;
+  }
+
+}
