@@ -1,0 +1,83 @@
+view: global_bom_demand_planning {
+  derived_table: {
+    indexes: ["BOMSKU"]
+    sql:
+
+SELECT s.BOMSKU,
+i.ItemName AS "BOMName",
+s.ComponentSKU,
+i2.ItemName As"ComponentItemName",
+s.Quantity,
+s.RegionCodes,
+DATEADD(HH, -7, s.InsertedDateUtc) As "ReportUpdatedDate",
+i.IsActive,
+s.productClass,
+s.channel,
+UPPER(dbom.discontinuedbom)as 'Discontinued'
+From DemandPlanningGlobalBOM s
+INNER JOIN ItemDIM i ON s.BOMSKU= i.SKU
+INNER JOIN ItemDIM i2 ON s.ComponentSKU = i2.SKU
+Left Join DemandPlanningGlobalBomHeader dbom ON s.bomsku = dbom.sku
+WHERE i.Isactive=1
+
+
+ ;;
+    sql_trigger_value: SELECT DATEPART(hour, GETDATE()) ;;
+
+
+
+  }
+##### DIMENSIONS #####
+
+    dimension: BOM_SKU{
+    type: string
+    sql: ${TABLE}.BOMSKU;;
+  }
+
+  dimension: BOM_Name{
+    type: string
+    sql: ${TABLE}.BOMName;;
+  }
+
+  dimension: Component_SKU{
+    type: string
+    sql: ${TABLE}.ComponentSKU;;
+  }
+  dimension: Component_Item_Description{
+    type: string
+    sql: ${TABLE}.ComponentItemName;;
+  }
+
+  dimension: Quantity{
+    type: number
+    sql: ${TABLE}.Quantity;;
+  }
+  dimension: RegionCodes{
+    type: string
+    sql: ${TABLE}.RegionCodes;;
+  }
+
+  dimension_group: Data_Refresh_Date {
+    type: time
+    convert_tz: no
+    timeframes: [raw, time, date, day_of_week, day_of_week_index, week, week_of_year, month, month_name, month_num, quarter, year]
+    sql: ${TABLE}.ReportUpdatedDate ;;
+  }
+
+  dimension: IsActive{
+    type: string
+    sql: ${TABLE}.IsActive;;
+  }
+  dimension: Component_Product_Class{
+    type: string
+    sql: ${TABLE}.productClass;;
+  }
+  dimension: channel{
+    type: string
+    sql: ${TABLE}.channel;;
+  }
+  dimension: Discontinued{
+    type: string
+    sql: ${TABLE}.Discontinued;;
+  }
+  }
