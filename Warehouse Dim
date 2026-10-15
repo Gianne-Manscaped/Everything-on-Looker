@@ -1,0 +1,179 @@
+view: warehouse_dim {
+  derived_table: {
+    indexes: ["Order_Number"]
+    sql:
+Select
+ship.TransactionNumber AS 'Order_Number',
+ship.state AS'State_Abbreviations',
+ship.country,
+ship.shipmentdate,
+CASE
+  WHEN ship.source3pl ='NPF' THEN 'NPF'
+  WHEN ship.source3pl= 'Visible' And ship.warehouse ='ATL' Then 'Maersk-ATL'
+  WHEN ship.source3pl= 'Visible' And ship.warehouse='TOR' Then 'Maersk-TOR'
+  WHEN ship.source3pl= 'Shiphero' And ship.warehouse LIKE'Reynosa%' Then 'FSD-Reynosa'
+  WHEN ship.source3pl= 'Shiphero' And ship.warehouse LIKE 'Tecate%' Then 'FSD-Tecate'
+  WHEN ship.source3pl= 'Shiphero' And ship.warehouse LIKE 'Toronto%' Then 'FSD-Hamilton'
+  WHEN ship.source3pl= 'SEKO' And ship.warehouse ='DCCL01' Then 'SEKO-UK'
+  WHEN ship.source3pl= 'SEKO' And ship.warehouse ='DCRTDM02' Then 'SEKO-NL'
+  WHEN ship.source3pl= 'ShipStation' And ship.warehouse ='Trade Place' Then 'Trade Place'
+  WHEN ship.source3pl= 'TFI' Then 'TFI'
+  Else coalesce (ship.source3pl,ship.warehouse) END AS 'Warehouse',
+  CASE
+WHEN ship.country = 'US'AND ship.state ='CT' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='DC' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='DE' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='IA' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='IL' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='IN' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='KY' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='MA' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='MD' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='ME' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='MI' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='MN' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='MO' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='NH' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='NJ' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='NY' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='OH' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='PA' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='RI' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='VA' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='VI' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='VT' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='WI' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='WV' AND ship.source3PL ='Flexport' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='AL' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Texas%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='AR' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Texas%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='FL' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Texas%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='GA' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Texas%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='KS' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Texas%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='LA' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Texas%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='MS' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Texas%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='NC' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Texas%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='ND' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Texas%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='NE' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Texas%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='OK' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Texas%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='PR' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Texas%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='SC' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Texas%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='SD' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Texas%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='TN' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Texas%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='TX' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Texas%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='AK' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Tecate%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='AZ' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Tecate%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='CA' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Tecate%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='CO' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Tecate%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='GU' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Tecate%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='HI' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Tecate%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='ID' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Tecate%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='MP' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Tecate%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='MT' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Tecate%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='NM' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Tecate%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='NV' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Tecate%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='OR' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Tecate%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='UT' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Tecate%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='WA' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Tecate%' THEN 'Yes'
+WHEN ship.country = 'US' AND ship.state ='WY' AND ship.source3PL ='Shiphero' AND ship.warehouse LIKE'%Tecate%' THEN 'Yes'
+WHEN ship.country <> 'US' THEN 'N/A'
+ELSE 'No' END AS 'Assigned_States',
+CASE
+WHEN ship.country = 'US' AND ship.state = 'CT' THEN 'Connecticut'
+WHEN ship.country = 'US' AND ship.state = 'DC' THEN 'Washington_DC'
+WHEN ship.country = 'US' AND ship.state = 'DE' THEN 'Delaware'
+WHEN ship.country = 'US' AND ship.state = 'IA' THEN 'Iowa'
+WHEN ship.country = 'US' AND ship.state ='IL' THEN  'Illinois'
+WHEN ship.country = 'US' AND ship.state ='IN' THEN  'Indiana'
+WHEN ship.country = 'US' AND ship.state ='KY' THEN  'Kentucky'
+WHEN ship.country = 'US' AND ship.state ='MA' THEN  'Massachusetts'
+WHEN ship.country = 'US' AND ship.state ='MD' THEN  'Maryland'
+WHEN ship.country = 'US' AND ship.state ='ME' THEN  'Maine'
+WHEN ship.country = 'US' AND ship.state ='MI' THEN  'Michigan'
+WHEN ship.country = 'US' AND ship.state ='MN' THEN  'Minnesota'
+WHEN ship.country = 'US' AND ship.state ='MO' THEN  'Missouri'
+WHEN ship.country = 'US' AND ship.state ='NH' THEN  'New Hampshire'
+WHEN ship.country = 'US' AND ship.state ='NJ' THEN  'New Jersey'
+WHEN ship.country = 'US' AND ship.state ='OH' THEN  'Ohio'
+WHEN ship.country = 'US' AND ship.state ='PA' THEN  'Pennsylvania'
+WHEN ship.country = 'US' AND ship.state ='RI' THEN  'Rhode Island'
+WHEN ship.country = 'US' AND ship.state ='VA' THEN  'Virginia'
+WHEN ship.country = 'US' AND ship.state ='VI' THEN  'Virgin Islands'
+WHEN ship.country = 'US' AND ship.state ='VT' THEN  'Vermont'
+WHEN ship.country = 'US' AND ship.state ='WI' THEN  'Wisconsin'
+WHEN ship.country = 'US' AND ship.state ='WV' THEN  'West Virginia'
+WHEN ship.country = 'US' AND ship.state ='AL' THEN  'Alabama'
+WHEN ship.country = 'US' AND ship.state ='AR' THEN  'Arkansas'
+WHEN ship.country = 'US' AND ship.state ='FL' THEN  'Florida'
+WHEN ship.country = 'US' AND ship.state ='GA' THEN  'Georgia'
+WHEN ship.country = 'US' AND ship.state ='KS' THEN  'Kansas'
+WHEN ship.country = 'US' AND ship.state ='LA' THEN 'Louisiana'
+WHEN ship.country = 'US' AND ship.state ='MS' THEN  'Mississippi'
+WHEN ship.country = 'US' AND ship.state ='NC' THEN  'North Carolina'
+WHEN ship.country = 'US' AND ship.state ='ND' THEN  'North Dakota'
+WHEN ship.country = 'US' AND ship.state ='NE' THEN  'Nebraska'
+WHEN ship.country = 'US' AND ship.state ='NY' THEN  'New York'
+WHEN ship.country = 'US' AND ship.state ='OK' THEN  'Oklahoma'
+WHEN ship.country = 'US' AND ship.state ='PR' THEN  'Puerto_Rico'
+WHEN ship.country = 'US' AND ship.state ='SC' THEN  'South Carolina'
+WHEN ship.country = 'US' AND ship.state ='SD' THEN  'South Dakota'
+WHEN ship.country = 'US' AND ship.state ='TN' THEN  'Tennessee'
+WHEN ship.country = 'US' AND ship.state ='TX' THEN  'Texas'
+WHEN ship.country = 'US' AND ship.state ='AK' THEN  'Alaska'
+WHEN ship.country = 'US' AND ship.state ='AS' THEN  'American_Samoa'
+WHEN ship.country = 'US' AND ship.state ='AZ' THEN  'Arizona'
+WHEN ship.country = 'US' AND ship.state ='CA' THEN  'California'
+WHEN ship.country = 'US' AND ship.state ='CO' THEN  'Colorado'
+WHEN ship.country = 'US' AND ship.state ='GU' THEN  'Guam'
+WHEN ship.country = 'US' AND ship.state ='HI' THEN  'Hawaii'
+WHEN ship.country = 'US' AND ship.state ='ID' THEN  'Idaho'
+WHEN ship.country = 'US' AND ship.state ='MP' THEN  'Northern Mariana Islands'
+WHEN ship.country = 'US' AND ship.state ='MT' THEN  'Montana'
+WHEN ship.country = 'US' AND ship.state ='NM' THEN  'New Mexico'
+WHEN ship.country = 'US' AND ship.state ='NV' THEN  'Nevada'
+WHEN ship.country = 'US' AND ship.state ='OR' THEN  'Oregon'
+WHEN ship.country = 'US' AND ship.state ='UT' THEN  'Utah'
+WHEN ship.country = 'US' AND ship.state ='WA' THEN  'Washington'
+WHEN ship.country = 'US' AND ship.state ='WY' THEN  'Wyoming'
+ELSE ship.state END AS 'State_Names'
+From shipmenttransactions3pl ship
+Where ship.shipmentdate >='2023-05-01'
+
+;;
+    sql_trigger_value: SELECT DATEPART(day, GETDATE()) ;;
+
+
+
+  }
+##### DIMENSIONS #####
+
+  dimension: warehouse {
+    type: string
+    sql: ${TABLE}."warehouse" ;;
+  }
+  dimension: Order_Number {
+    primary_key: yes
+    type: string
+    sql: ${TABLE}."Order_Number" ;;
+  }
+  dimension: State_Abbreviations {
+    type: string
+    sql: ${TABLE}."State_Abbreviations" ;;
+  }
+
+  dimension: State_Names {
+    type: string
+    sql: ${TABLE}."State_Names" ;;
+  }
+
+  dimension_group: Fulfilled_Date{
+    type: time
+    convert_tz: no
+    timeframes: [raw, time, date, day_of_week, day_of_week_index, week, week_of_year, month, month_name, month_num, quarter, year]
+    sql: ${TABLE}.Shipmentdate ;;
+  }
+
+  dimension: Assigned_States {
+    type: string
+    sql: ${TABLE}."Assigned_States" ;;
+  }
+  }
